@@ -447,4 +447,27 @@ def TransposeOp : Toy_Op<"transpose",
   let hasVerifier = 1;
 }
 
+//===----------------------------------------------------------------------===//
+// TransposeOp
+//===----------------------------------------------------------------------===//
+
+def MatmulOp : Toy_Op<"matmul">{
+  let summary = "matrix multiplication";
+  let description = [{
+    The "matmul" operation performs multiplication between two matrixs.
+  }];
+  //定义输入参数
+  let arguments = (ins F64Tensor:$lhs, F64Tensor:$rhs);
+  //定义返回值
+  let results = (outs F64Tensor);
+  //let parser = [{return ::parseBinaryOp(parser,result);}];
+  //let printer = [{return ::printBinaryOp(p,*this);}];
+  let hasCustomAssemblyFormat = 1;
+
+  let builders = [
+    OpBuilder<(ins "Value":$lhs,"Value":$rhs)>
+  ];
+}
+
+
 #endif // TOY_OPS
