@@ -86,3 +86,23 @@ void ReshapeOp::getCanonicalizationPatterns(RewritePatternSet &results,
   results.add<ReshapeReshapeOptPattern, RedundantReshapeOptPattern,
               FoldConstantReshapeOptPattern>(context);
 }
+
+//add
+struct RepositionRedundantMatmul:public mlir::OpRewritePattern<MatmulOp>{
+  RepositionRedundantMatmul(mlir::MLIRContext *context)
+    :OpRewritePattern<MatmulOp>(context,2){}
+  mlir::LogicalResult matchAndRewrite(MatmulOp op,mlir::PatternRewriter &rewriter)const override{
+    mlir::Value MatmulLhs = op.getOperands()[0];//获取第一个操作数
+    mlir::Value MatmulRhs = op.getOperands()[1];
+    MatmulOp matmulLhsOp = MatmulLhs.getDefiningOp<MatmulOp>();
+    if(!matmulLhsOp)return failure();//判断第一个操作数是否依然为MatmulOp
+    auto BxC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[1],MatmulRhs);//重现创建Op
+    auto AxBC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[0],BxC);
+    rewriter.replaceOp(op,{AxBC});//Op替换
+    return success();
+  }
+};
+//相当于注册吧，启用canonicalization pass
+void MatmulOp::getCanonicalizationPatterns(RewritePatternSet &results,MLIRContext *context){
+  results.add<RepositionRedundantMatmul>(context);
+}

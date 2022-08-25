@@ -451,14 +451,13 @@ def TransposeOp : Toy_Op<"transpose",
 // TransposeOp
 //===----------------------------------------------------------------------===//
 
-def MatmulOp : Toy_Op<"matmul">{
+def MatmulOp:Toy_Op<"matmul",
+  [NoSideEffect]>{//添加NoSideEffect特性，以使优化更加彻底
   let summary = "matrix multiplication";
   let description = [{
     The "matmul" operation performs multiplication between two matrixs.
   }];
-  //定义输入参数
-  let arguments = (ins F64Tensor:$lhs, F64Tensor:$rhs);
-  //定义返回值
+  let arguments = (ins F64Tensor:$lhs,F64Tensor:$rhs);
   let results = (outs F64Tensor);
   //let parser = [{return ::parseBinaryOp(parser,result);}];
   //let printer = [{return ::printBinaryOp(p,*this);}];
@@ -467,7 +466,7 @@ def MatmulOp : Toy_Op<"matmul">{
   let builders = [
     OpBuilder<(ins "Value":$lhs,"Value":$rhs)>
   ];
+  let hasCanonicalizer = 1; //启用，代表该Op需要经过canonicalization pass
 }
-
 
 #endif // TOY_OPS

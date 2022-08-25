@@ -492,8 +492,14 @@ void MatmulOp::print(mlir::OpAsmPrinter &p) { printBinaryOp(p, *this); }
 
 /// Infer the output shape of the MulOp, this is required by the shape inference
 /// interface.
-// void MatmulOp::inferShapes() { getResult().setType(getOperand(0).getType()); }
-
+// void MatmulOp::inferShapes(){
+//   auto lhsShape = getOperand(0).getType().cast<RankedTensorType>().getShape();
+//   auto rhsShape = getOperand(1).getType().cast<RankedTensorType>().getShape();
+//   SmallVector<int64_t,2>dims;//构造新的形状
+//   dims.push_back(lhsShape[0]);
+//   dims.push_back(rhsShape[1]);
+//   getResult().setType(RankedTensorType::get(dims,getOperand(0).getType().cast<RankedTensorType>().getElementType()));
+// }
 
 //===----------------------------------------------------------------------===//
 // Toy Types
