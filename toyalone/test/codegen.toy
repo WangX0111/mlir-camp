@@ -11,4 +11,7 @@ def main() {
   var c = matmul(matmul(transpose(a),b),transpose(a));
   print(c);
   print(b);
+  var d<2, 3> = [1, 2, 3, 4, 5, 6];
+  var g = matmul(transpose(a),d);
+  print(g);
 }

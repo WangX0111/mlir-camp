@@ -90,6 +90,53 @@ static void lowerOpToLoops(Operation *op, ValueRange operands,
   rewriter.replaceOp(op, alloc);
 }
 
+static void lowerOpToLoopsMatmul(Operation *op,ValueRange operands,PatternRewriter &rewriter
+  ,LoopIterationFn processIteration){
+  auto tensorType = (*op->result_type_begin()).cast<TensorType>();//获得结果类型
+  auto loc = op->getLoc();
+  auto memRefType = convertTensorToMemRef(tensorType);//给结果申请空间
+  auto alloc = insertAllocAndDealloc(memRefType,loc,rewriter);//类似于指向结果的指针
+  SmallVector<int64_t,4>lowerBounds(tensorType.getRank(),0);
+  SmallVector<int64_t,4>steps(tensorType.getRank(),1);
+  //获取第一个数组的第二维或第二个数组的第一维
+  SmallVector<int64_t,1> dimV;
+  auto dim = op->getOperand(0).getType().cast<RankedTensorType>().getShape()[1];
+  dimV.push_back(dim);
+  //构架外面的两层循环
+  buildAffineLoopNest(rewriter,loc,lowerBounds,tensorType.getShape(),steps,
+    [&](OpBuilder &nestedBuilder,Location loc,ValueRange ivs){
+    //先将结果数组赋初值为0
+    SmallVector<Value,2>setZeroIvs(ivs); //这里 里面取消了llvm::reverse的用法，这样最后输出的结果里面不会存在0项
+    //所以提醒我们要注意数据的存放顺序应该保持一致
+    auto loadRes = rewriter.create<AffineLoadOp>(loc,alloc,setZeroIvs);
+    Value valueToStore = rewriter.create<arith::SubFOp>(loc,loadRes,loadRes);
+    //下面这个就感觉就是将某个数以某种写顺序存在某个地方
+    rewriter.create<AffineStoreOp>(loc,valueToStore,alloc,llvm::makeArrayRef(setZeroIvs));
+
+    //下面开始准备最内层的循环
+    SmallVector<int64_t,4>lowerBounds(1,0);//这里的1就指代一层循环
+    SmallVector<int64_t,4>steps(1,1);
+    //保留上面两层循环的层次信息，以便构造最内层操作
+    ValueRange resultIvs=ivs;
+    SmallVector<Value,3>forIvs;
+    forIvs.push_back(ivs[0]);
+    forIvs.push_back(ivs[1]);
+    //构造最内层循环
+    buildAffineLoopNest(rewriter,loc,lowerBounds,dimV,steps,
+      [&](OpBuilder &nestedBuilder,Location loc,ValueRange ivs){
+      //在这里可以集齐所需要的三层循环层次
+      forIvs.push_back(ivs[0]);
+      Value valueToAdd=processIteration(nestedBuilder,operands,forIvs);
+      //实现加法
+      auto loadResult = nestedBuilder.create<AffineLoadOp>(loc,alloc,resultIvs);
+      Value valueToStore = nestedBuilder.create<arith::AddFOp>(loc,loadResult,valueToAdd);
+      nestedBuilder.create<AffineStoreOp>(loc,valueToStore,alloc,resultIvs);
+    });
+  });
+  //这里直接可以替换op
+  rewriter.replaceOp(op,alloc);
+}
+
 namespace {
 //===----------------------------------------------------------------------===//
 // ToyToAffine RewritePatterns: Binary operations
@@ -299,6 +346,31 @@ struct TransposeOpLowering : public ConversionPattern {
   }
 };
 
+//===----------------------------------------------------------------------===//
+// ToyToAffine RewritePatterns: Matmul operations
+//===----------------------------------------------------------------------===//
+
+// 最内层循环操作
+struct MatmulOpLowering:public ConversionPattern{
+  MatmulOpLowering(MLIRContext *ctx)
+    :ConversionPattern(toy::MatmulOp::getOperationName(),1,ctx){}
+  LogicalResult matchAndRewrite(Operation *op,ArrayRef<Value>operands,ConversionPatternRewriter &rewriter)const final{
+    auto loc = op->getLoc();
+    lowerOpToLoopsMatmul(op,operands,rewriter,
+      [loc](OpBuilder &builder,ValueRange memRefOperands,ValueRange loopIvs){
+      typename toy::MatmulOpAdaptor MatmulAdaptor(memRefOperands);
+      SmallVector<Value,2>LhsIvs,RhsIvs;
+      LhsIvs.push_back(loopIvs[0]);
+      LhsIvs.push_back(loopIvs[2]);
+      RhsIvs.push_back(loopIvs[2]);
+      RhsIvs.push_back(loopIvs[1]);
+      auto loadedLhs = builder.create<AffineLoadOp>(loc,MatmulAdaptor.getLhs(),LhsIvs);
+      auto loadedRhs = builder.create<AffineLoadOp>(loc,MatmulAdaptor.getRhs(),RhsIvs);
+      return builder.create<arith::MulFOp>(loc,loadedLhs,loadedRhs);
+    });
+    return success();
+  }
+};
 } // namespace
 
 //===----------------------------------------------------------------------===//
@@ -348,7 +420,7 @@ void ToyToAffineLoweringPass::runOnOperation() {
   // the set of patterns that will lower the Toy operations.
   RewritePatternSet patterns(&getContext());
   patterns.add<AddOpLowering, ConstantOpLowering, FuncOpLowering, MulOpLowering,
-               PrintOpLowering, ReturnOpLowering, TransposeOpLowering>(
+               PrintOpLowering, ReturnOpLowering, TransposeOpLowering, MatmulOpLowering>(
       &getContext());
 
   // With the target and rewrite patterns defined, we can now attempt the
