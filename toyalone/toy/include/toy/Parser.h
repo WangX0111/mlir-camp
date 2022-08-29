@@ -40,7 +40,7 @@ public:
 
   /// Parse a full Module. A module is a list of function definitions.
   std::unique_ptr<ModuleAST> parseModule() {
-    lexer.getNextToken(); // prime the lexer
+    lexer.getNextToken(); 
 
     // Parse functions and structs one at a time and accumulate in this vector.
     std::vector<std::unique_ptr<RecordAST>> records;
@@ -655,6 +655,10 @@ private:
       return 20;
     case '*':
       return 40;
+    case '@':
+      return 40;
+    case '^':
+      return 50;
     case '.':
       return 60;
     default:

@@ -515,6 +515,13 @@ private:
         return nullptr;
       }
       return builder.create<MatmulOp>(location,operands[0],operands[1]);
+    } else if (callee == "exp") {
+      if (call.getArgs().size() != 1) {
+        emitError(location, "MLIR codegen encountered an error: toy.exp "
+                            "does not accept multiple arguments");
+        return nullptr;
+      }
+      return builder.create<ExpOp>(location, operands[0]);
     }
 
     // Otherwise this is a call to a user-defined function. Calls to

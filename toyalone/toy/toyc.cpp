@@ -154,6 +154,7 @@ int loadAndProcessMLIR(mlir::MLIRContext &context,
   }
 
   if (isLoweringToAffine) {
+    llvm::outs() << "isLoweringToAffine\n";
     // Partially lower the toy dialect.
     pm.addPass(mlir::toy::createLowerToAffinePass());
 
@@ -164,12 +165,15 @@ int loadAndProcessMLIR(mlir::MLIRContext &context,
 
     // Add optimizations if enabled.
     if (enableOpt) {
+      llvm::outs() << "enable opt\n";
       optPM.addPass(mlir::createLoopFusionPass());
       optPM.addPass(mlir::createAffineScalarReplacementPass());
     }
   }
 
   if (isLoweringToLLVM) {
+      llvm::outs() << "isLoweringToLLVM\n";
+
     // Finish lowering the toy IR to the LLVM dialect.
     pm.addPass(mlir::toy::createLowerToLLVMPass());
   }
@@ -223,6 +227,8 @@ int dumpLLVMIR(mlir::ModuleOp module) {
 }
 
 int runJit(mlir::ModuleOp module) {
+  llvm::outs() << "runJit\n";
+
   // Initialize LLVM targets.
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -260,6 +266,7 @@ int main(int argc, char **argv) {
   mlir::registerMLIRContextCLOptions();
   mlir::registerPassManagerCLOptions();
 
+  llvm::outs() << "add code to toyc-main\n";
   cl::ParseCommandLineOptions(argc, argv, "toy compiler\n");
 
   if (emitAction == Action::DumpAST)

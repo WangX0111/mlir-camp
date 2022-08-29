@@ -16,6 +16,7 @@
 #include "toy/Dialect.h"
 #include "toy/Passes.h"
 
+#include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -176,6 +177,33 @@ struct BinaryOpLowering : public ConversionPattern {
 };
 using AddOpLowering = BinaryOpLowering<toy::AddOp, arith::AddFOp>;
 using MulOpLowering = BinaryOpLowering<toy::MulOp, arith::MulFOp>;
+
+template <typename UnaryOp, typename LoweredUnaryOp>
+struct UnaryOpLowering : public ConversionPattern {
+  UnaryOpLowering(MLIRContext *ctx)
+      : ConversionPattern(UnaryOp::getOperationName(), 1, ctx) {}
+
+  LogicalResult
+  matchAndRewrite(Operation *op, ArrayRef<Value> operands,
+                  ConversionPatternRewriter &rewriter) const final {
+    auto loc = op->getLoc();
+    lowerOpToLoops(op, operands, rewriter,
+                   [loc](OpBuilder &builder, ValueRange memRefOperands,
+                         ValueRange loopIvs) {
+                   
+                     typename UnaryOp::Adaptor UnaryAdaptor(memRefOperands);
+
+                     auto input = builder.create<AffineLoadOp>(
+                         loc, UnaryAdaptor.getInput(), loopIvs);
+        
+                     return builder.create<LoweredUnaryOp>(loc, 
+                                                            input);
+                   });
+    return success();
+  }
+};
+
+using ExpOpLowering = UnaryOpLowering<toy::ExpOp, math::ExpOp>;
 
 //===----------------------------------------------------------------------===//
 // ToyToAffine RewritePatterns: Constant operations
@@ -373,6 +401,7 @@ struct MatmulOpLowering:public ConversionPattern{
 };
 } // namespace
 
+
 //===----------------------------------------------------------------------===//
 // ToyToAffineLoweringPass
 //===----------------------------------------------------------------------===//
@@ -386,7 +415,7 @@ struct ToyToAffineLoweringPass
   MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(ToyToAffineLoweringPass)
 
   void getDependentDialects(DialectRegistry &registry) const override {
-    registry.insert<AffineDialect, func::FuncDialect, memref::MemRefDialect>();
+    registry.insert<AffineDialect, func::FuncDialect, memref::MemRefDialect, math::MathDialect>();
   }
   void runOnOperation() final;
 };
@@ -402,7 +431,7 @@ void ToyToAffineLoweringPass::runOnOperation() {
   // `Affine`, `Arithmetic`, `Func`, and `MemRef` dialects.
   target
       .addLegalDialect<AffineDialect, BuiltinDialect, arith::ArithmeticDialect,
-                       func::FuncDialect, memref::MemRefDialect>();
+                       func::FuncDialect, memref::MemRefDialect, math::MathDialect>();
 
   // We also define the Toy dialect as Illegal so that the conversion will fail
   // if any of these operations are *not* converted. Given that we actually want
@@ -418,15 +447,17 @@ void ToyToAffineLoweringPass::runOnOperation() {
 
   // Now that the conversion target has been defined, we just need to provide
   // the set of patterns that will lower the Toy operations.
+  // 添加pattern到context
   RewritePatternSet patterns(&getContext());
   patterns.add<AddOpLowering, ConstantOpLowering, FuncOpLowering, MulOpLowering,
-               PrintOpLowering, ReturnOpLowering, TransposeOpLowering, MatmulOpLowering>(
+               PrintOpLowering, ReturnOpLowering, TransposeOpLowering, MatmulOpLowering, ExpOpLowering>(
       &getContext());
 
   // With the target and rewrite patterns defined, we can now attempt the
   // conversion. The conversion will signal failure if any of our `illegal`
   // operations were not converted successfully.
   if (failed(
+          // 应用转换过程
           applyPartialConversion(getOperation(), target, std::move(patterns))))
     signalPassFailure();
 }

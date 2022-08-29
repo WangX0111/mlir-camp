@@ -468,4 +468,31 @@ def MatmulOp:Toy_Op<"matmul",
   let hasCanonicalizer = 1;
 }
 
+//===----------------------------------------------------------------------===//
+// ExpOp
+//===----------------------------------------------------------------------===//
+
+def ExpOp : Toy_Op<"exp", 
+    [NoSideEffect, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
+  let summary = "exp operation";
+  let arguments = (ins F64Tensor:$input);
+  let results = (outs F64Tensor);
+
+  let assemblyFormat = [{
+    `(` $input `:` type($input) `)` attr-dict `to` type(results)
+  }];
+
+  // let hasCustomAssemblyFormat = 1;
+
+  // Enable registering canonicalization patterns with this operation
+  let hasCanonicalizer = 1;
+
+  // Allow building a InvertOp with from the input operand
+  let builders = [
+    OpBuilder<(ins "Value":$input)>
+  ];
+  
+ // Indicate that additional verification for this operation is necessary.
+  // let hasVerifier = 1;
+}
 #endif // TOY_OPS

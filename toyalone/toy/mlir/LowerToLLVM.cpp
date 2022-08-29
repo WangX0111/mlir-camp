@@ -25,6 +25,7 @@
 #include "toy/Dialect.h"
 #include "toy/Passes.h"
 
+#include "mlir/Conversion/MathToLLVM/MathToLLVM.h"
 #include "mlir/Conversion/AffineToStandard/AffineToStandard.h"
 #include "mlir/Conversion/ArithmeticToLLVM/ArithmeticToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
@@ -211,6 +212,7 @@ void ToyToLLVMLoweringPass::runOnOperation() {
   populateMemRefToLLVMConversionPatterns(typeConverter, patterns);
   cf::populateControlFlowToLLVMConversionPatterns(typeConverter, patterns);
   populateFuncToLLVMConversionPatterns(typeConverter, patterns);
+  mlir::populateMathToLLVMConversionPatterns(typeConverter, patterns);
 
   // The only remaining operation to lower from the `toy` dialect, is the
   // PrintOp.

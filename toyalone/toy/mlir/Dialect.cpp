@@ -501,6 +501,21 @@ void MatmulOp::inferShapes(){
   getResult().setType(RankedTensorType::get(dims,getOperand(0).getType().cast<RankedTensorType>().getElementType()));
 }
 
+
+//===----------------------------------------------------------------------===//
+// ExpOp
+//===----------------------------------------------------------------------===//
+
+void ExpOp::build(mlir::OpBuilder &builder, mlir::OperationState &state,
+                        mlir::Value value) {
+  state.addTypes(UnrankedTensorType::get(builder.getF64Type()));
+  state.addOperands(value);
+}
+
+void ExpOp::inferShapes() {
+  getResult().setType(getInput().getType());
+}
+
 //===----------------------------------------------------------------------===//
 // Toy Types
 //===----------------------------------------------------------------------===//

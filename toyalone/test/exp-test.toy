@@ -1,0 +1,5 @@
+def main() {
+    var a0 = [[1,2,3]];
+    var e0 = exp(a0);
+    print(e0);
+}

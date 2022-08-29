@@ -72,6 +72,48 @@ struct SimplifyRedundantTranspose : public mlir::OpRewritePattern<TransposeOp> {
   }
 };
 
+//matmul
+struct RepositionRedundantMatmul:public mlir::OpRewritePattern<MatmulOp>{
+  RepositionRedundantMatmul(mlir::MLIRContext *context)
+    :OpRewritePattern<MatmulOp>(context,2){}
+  mlir::LogicalResult matchAndRewrite(MatmulOp op,mlir::PatternRewriter &rewriter)const override{
+    mlir::Value MatmulLhs = op.getOperands()[0];//获取第一个操作数
+    mlir::Value MatmulRhs = op.getOperands()[1];
+    MatmulOp matmulLhsOp = MatmulLhs.getDefiningOp<MatmulOp>();
+    if(!matmulLhsOp)return failure();//判断第一个操作数是否依然为MatmulOp
+    auto BxC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[1],MatmulRhs);//重现创建Op
+    auto AxBC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[0],BxC);
+    rewriter.replaceOp(op,{AxBC});//Op替换
+    return success();
+  }
+};
+
+//exp
+struct SimplifyRedundantExp : public mlir::OpRewritePattern<ExpOp> {
+  
+  SimplifyRedundantExp(mlir::MLIRContext *context)
+      : OpRewritePattern<ExpOp>(context, /*benefit=*/1) {}
+
+  /// This method attempts to match a pattern and rewrite it. The rewriter
+  /// argument is the orchestrator of the sequence of rewrites. The pattern is
+  /// expected to interact with it to perform any changes to the IR from here.
+  mlir::LogicalResult
+  matchAndRewrite(ExpOp op,
+                  mlir::PatternRewriter &rewriter) const override {
+    // Look through the input of the current transpose.
+    mlir::Value expInput = op.getOperand();
+    ExpOp expInputOp = expInput.getDefiningOp<ExpOp>();
+
+    // Input defined by another transpose? If not, no match.
+    if (!expInputOp)
+      return failure();
+
+    // Otherwise, we have a redundant transpose. Use the rewriter.
+    rewriter.replaceOp(op, {expInputOp.getOperand()});
+    return success();
+  }
+};
+
 /// Register our patterns as "canonicalization" patterns on the TransposeOp so
 /// that they can be picked up by the Canonicalization framework.
 void TransposeOp::getCanonicalizationPatterns(RewritePatternSet &results,
@@ -87,22 +129,11 @@ void ReshapeOp::getCanonicalizationPatterns(RewritePatternSet &results,
               FoldConstantReshapeOptPattern>(context);
 }
 
-//add
-struct RepositionRedundantMatmul:public mlir::OpRewritePattern<MatmulOp>{
-  RepositionRedundantMatmul(mlir::MLIRContext *context)
-    :OpRewritePattern<MatmulOp>(context,2){}
-  mlir::LogicalResult matchAndRewrite(MatmulOp op,mlir::PatternRewriter &rewriter)const override{
-    mlir::Value MatmulLhs = op.getOperands()[0];//获取第一个操作数
-    mlir::Value MatmulRhs = op.getOperands()[1];
-    MatmulOp matmulLhsOp = MatmulLhs.getDefiningOp<MatmulOp>();
-    if(!matmulLhsOp)return failure();//判断第一个操作数是否依然为MatmulOp
-    auto BxC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[1],MatmulRhs);//重现创建Op
-    auto AxBC = rewriter.create<MatmulOp>(op.getLoc(),matmulLhsOp.getOperands()[0],BxC);
-    rewriter.replaceOp(op,{AxBC});//Op替换
-    return success();
-  }
-};
 //相当于注册吧，启用canonicalization pass
 void MatmulOp::getCanonicalizationPatterns(RewritePatternSet &results,MLIRContext *context){
   results.add<RepositionRedundantMatmul>(context);
+}
+
+void ExpOp::getCanonicalizationPatterns(RewritePatternSet &results,MLIRContext *context){
+  results.add<SimplifyRedundantTranspose>(context);
 }
