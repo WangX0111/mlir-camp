@@ -22,60 +22,138 @@
 
 ## 项目结构
 ```
-mlir-camp
-├─ LICENSE.TXT
-├─ README.md
-└─ toyalone
-   ├─ .gitignore
-   ├─ CMakeLists.txt
-   ├─ LICENSE.TXT
-   ├─ README.md
-   ├─ build
-   ├─ include
-   ├─ lib
-   ├─ python
-   ├─ standalone-opt
-   │  ├─ CMakeLists.txt
-   │  └─ standalone-opt.cpp
-   ├─ standalone-translate
-   │  ├─ CMakeLists.txt
-   │  └─ standalone-translate.cpp
-   ├─ test
-   │  ├─ CAPI
-   │  ├─ CMakeLists.txt
-   │  ├─ Standalone
-   │  ├─ ast.toy
-   │  ├─ codegen.toy
-   │  ├─ empty.toy
-   │  ├─ lit.cfg.py
-   │  ├─ lit.site.cfg.py.in
-   │  └─ python
-   └─ toy
-      ├─ CMakeLists.txt
-      ├─ README.md
-      ├─ include
-      │  ├─ CMakeLists.txt
-      │  └─ toy
-      │     ├─ AST.h
-      │     ├─ CMakeLists.txt
-      │     ├─ Dialect.h
-      │     ├─ Lexer.h
-      │     ├─ MLIRGen.h
-      │     ├─ Ops.td
-      │     ├─ Parser.h
-      │     ├─ Passes.h
-      │     ├─ ShapeInferenceInterface.h
-      │     └─ ShapeInferenceInterface.td
-      ├─ mlir
-      │  ├─ Dialect.cpp
-      │  ├─ LowerToAffineLoops.cpp
-      │  ├─ LowerToLLVM.cpp
-      │  ├─ MLIRGen.cpp
-      │  ├─ ShapeInferencePass.cpp
-      │  ├─ ToyCombine.cpp
-      │  └─ ToyCombine.td
-      ├─ parser
-      │  └─ AST.cpp
-      └─ toyc.cpp
+MLIR-Camp
+├── LICENSE.TXT
+├── README.md
+├── docs
+└── toyalone
+    ├── CMakeLists.txt
+    ├── LICENSE.TXT
+    ├── README.md
+    ├── build
+    │   ├── CMakeCache.txt
+    │   ├── CMakeFiles
+    │   │   ├── 3.23.1
+    │   │   │   ├── CMakeCCompiler.cmake
+    │   │   │   ├── CMakeCXXCompiler.cmake
+    │   │   │   ├── CMakeDetermineCompilerABI_C.bin
+    │   │   │   ├── CMakeDetermineCompilerABI_CXX.bin
+    │   │   │   ├── CMakeSystem.cmake
+    │   │   │   ├── CompilerIdC
+    │   │   │   │   ├── CMakeCCompilerId.c
+    │   │   │   │   ├── CMakeCCompilerId.o
+    │   │   │   │   └── tmp
+    │   │   │   └── CompilerIdCXX
+    │   │   │       ├── CMakeCXXCompilerId.cpp
+    │   │   │       ├── CMakeCXXCompilerId.o
+    │   │   │       └── tmp
+    │   │   ├── CMakeError.log
+    │   │   ├── CMakeOutput.log
+    │   │   ├── CMakeTmp
+    │   │   ├── TargetDirectories.txt
+    │   │   ├── cmake.check_cache
+    │   │   └── rules.ninja
+    │   ├── bin
+    │   │   └── toyc-main
+    │   ├── build.ninja
+    │   ├── cmake_install.cmake
+    │   ├── include
+    │   │   ├── CMakeFiles
+    │   │   ├── cmake_install.cmake
+    │   │   └── toy
+    │   │       ├── CMakeFiles
+    │   │       ├── Ops.cpp.inc
+    │   │       ├── Ops.cpp.inc.d
+    │   │       ├── Ops.h.inc
+    │   │       ├── Ops.h.inc.d
+    │   │       ├── OpsDialect.cpp.inc
+    │   │       ├── OpsDialect.cpp.inc.d
+    │   │       ├── OpsDialect.h.inc
+    │   │       ├── OpsDialect.h.inc.d
+    │   │       ├── OpsTypes.cpp.inc
+    │   │       ├── OpsTypes.cpp.inc.d
+    │   │       ├── OpsTypes.h.inc
+    │   │       ├── OpsTypes.h.inc.d
+    │   │       ├── ShapeInferenceOpInterfaces.cpp.inc
+    │   │       ├── ShapeInferenceOpInterfaces.cpp.inc.d
+    │   │       ├── ShapeInferenceOpInterfaces.h.inc
+    │   │       ├── ShapeInferenceOpInterfaces.h.inc.d
+    │   │       ├── ToyCombine.inc
+    │   │       ├── ToyCombine.inc.d
+    │   │       └── cmake_install.cmake
+    │   ├── lib
+    │   │   ├── CMakeFiles
+    │   │   ├── cmake_install.cmake
+    │   │   ├── libMLIRToy.a
+    │   │   └── mlir
+    │   │       ├── CMakeFiles
+    │   │       │   ├── MLIRToy.dir
+    │   │       │   └── obj.MLIRToy.dir
+    │   │       │       ├── LowerToAffineLoops.cpp.o
+    │   │       │       ├── LowerToLLVM.cpp.o
+    │   │       │       ├── MLIRGen.cpp.o
+    │   │       │       ├── OpsDialect.cpp.o
+    │   │       │       ├── ShapeInferencePass.cpp.o
+    │   │       │       └── ToyCombine.cpp.o
+    │   │       └── cmake_install.cmake
+    │   ├── tablegen_compile_commands.yml
+    │   ├── test
+    │   │   ├── CMakeFiles
+    │   │   ├── cmake_install.cmake
+    │   │   └── lit.site.cfg.py
+    │   └── toy
+    │       ├── CMakeFiles
+    │       │   └── toyc-main.dir
+    │       │       ├── AST.cpp.o
+    │       │       └── toyc.cpp.o
+    │       └── cmake_install.cmake
+    ├── include
+    │   ├── CMakeLists.txt
+    │   └── toy
+    │       ├── AST.h
+    │       ├── CMakeLists.txt
+    │       ├── Lexer.h
+    │       ├── MLIRGen.h
+    │       ├── Ops.td
+    │       ├── OpsDialect.h
+    │       ├── Parser.h
+    │       ├── Passes.h
+    │       ├── ShapeInferenceInterface.h
+    │       ├── ShapeInferenceInterface.td
+    │       └── ToyCombine.td
+    ├── lib
+    │   ├── CMakeLists.txt
+    │   ├── mlir
+    │   │   ├── CMakeLists.txt
+    │   │   ├── LowerToAffineLoops.cpp
+    │   │   ├── LowerToLLVM.cpp
+    │   │   ├── MLIRGen.cpp
+    │   │   ├── OpsDialect.cpp
+    │   │   ├── ShapeInferencePass.cpp
+    │   │   └── ToyCombine.cpp
+    │   └── parser
+    ├── python
+    │   ├── CMakeLists.txt
+    │   ├── StandaloneExtension.cpp
+    │   └── mlir_standalone
+    │       └── dialects
+    │           ├── StandaloneOps.td
+    │           └── standalone.py
+    ├── test
+    │   ├── CMakeLists.txt
+    │   ├── ast.toy
+    │   ├── codegen.toy
+    │   ├── empty.toy
+    │   ├── exp-test.toy
+    │   ├── lit.cfg.py
+    │   ├── lit.site.cfg.py.in
+    │   ├── matmul-test.toy
+    │   └── python
+    │       ├── lit.local.cfg
+    │       └── smoketest.py
+    └── toy
+        ├── AST.cpp
+        ├── CMakeLists.txt
+        └── toyc.cpp
 
 ```
