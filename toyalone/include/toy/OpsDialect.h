@@ -21,7 +21,7 @@
 #include "mlir/Interfaces/CallInterfaces.h"
 #include "mlir/Interfaces/CastInterfaces.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
-#include "toy/ShapeInferenceInterface.h"
+#include "ShapeInferenceInterface.h"
 
 namespace mlir {
 namespace toy {
@@ -33,7 +33,7 @@ struct StructTypeStorage;
 
 /// Include the auto-generated header file containing the declaration of the toy
 /// dialect.
-#include "toy/Dialect.h.inc"
+#include "toy/OpsDialect.h.inc"
 
 //===----------------------------------------------------------------------===//
 // Toy Operations

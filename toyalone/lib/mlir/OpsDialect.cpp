@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -23,7 +23,7 @@
 using namespace mlir;
 using namespace mlir::toy;
 
-#include "toy/Dialect.cpp.inc"
+#include "toy/OpsDialect.cpp.inc"
 
 //===----------------------------------------------------------------------===//
 // ToyInlinerInterface

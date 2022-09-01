@@ -10,7 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 #include "toy/MLIRGen.h"
 #include "toy/Parser.h"
 #include "toy/Passes.h"

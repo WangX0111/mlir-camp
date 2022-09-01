@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "mlir/Pass/Pass.h"
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 #include "toy/Passes.h"
 #include "toy/ShapeInferenceInterface.h"
 #include "llvm/ADT/SmallPtrSet.h"

@@ -22,7 +22,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 #include "toy/Passes.h"
 
 #include "mlir/Conversion/MathToLLVM/MathToLLVM.h"

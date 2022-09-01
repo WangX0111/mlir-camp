@@ -13,14 +13,14 @@
 
 #include "mlir/IR/Matchers.h"
 #include "mlir/IR/PatternMatch.h"
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 #include <numeric>
 using namespace mlir;
 using namespace toy;
 
 namespace {
 /// Include the patterns defined in the Declarative Rewrite framework.
-#include "ToyCombine.inc"
+#include "toy/ToyCombine.inc"
 } // namespace
 
 /// Fold constants.

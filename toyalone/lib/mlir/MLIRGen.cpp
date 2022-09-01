@@ -13,7 +13,7 @@
 
 #include "toy/MLIRGen.h"
 #include "toy/AST.h"
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/Builders.h"

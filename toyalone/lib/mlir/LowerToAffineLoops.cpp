@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "mlir/IR/BuiltinDialect.h"
-#include "toy/Dialect.h"
+#include "toy/OpsDialect.h"
 #include "toy/Passes.h"
 
 #include "mlir/Dialect/Math/IR/Math.h"
