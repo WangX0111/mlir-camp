@@ -135,5 +135,5 @@ void MatmulOp::getCanonicalizationPatterns(RewritePatternSet &results,MLIRContex
 }
 
 void ExpOp::getCanonicalizationPatterns(RewritePatternSet &results,MLIRContext *context){
-  results.add<SimplifyRedundantTranspose>(context);
+  results.add<SimplifyRedundantExp>(context);
 }

@@ -13,6 +13,7 @@ set(LLVM_TARGET_DEFINITIONS mlir/ToyCombine.td)
 mlir_tablegen(ToyCombine.inc -gen-rewriters)
 add_public_tablegen_target(ToyCombineIncGen)
 
+# 生成可执行文件
 add_llvm_executable(toyc-main
   toyc.cpp
   parser/AST.cpp
